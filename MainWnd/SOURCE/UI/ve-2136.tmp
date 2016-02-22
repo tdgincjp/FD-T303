@@ -1,0 +1,958 @@
+// SettingDlg.cpp : implementation file
+//
+
+#include "stdafx.h"
+#include "..\\..\\MainWnd.h"
+#include "SettingDlg.h"
+#include "Language.h"
+#include "..\\UTILS\\string.h"
+#include "SaioBase.h"
+
+// CSettingDlg dialog
+#define PASSWORD_INPUT				-1
+#define MAIN_GUI					0
+#define SHOW_HOST					1
+#define SHOW_TERMINALID				2
+#define SHOW_TIMEZONE				3
+#define SHOW_PRODUCTHOST			4
+#define SHOW_TESTHOST				5
+#define EDIT_HOST					6
+#define EDIT_TERMINALID				7
+#define EDIT_TIMEZONE				8
+#define EDIT_STATICIP				9
+#define INPUT_STATICIP				10
+#define SHOW_MORE					11
+#define SHOW_COPYLOG				12
+#define SHOW_RESTART				13
+
+
+IMPLEMENT_DYNAMIC(CSettingDlg, CDialog)
+
+
+//-----------------------------------------------------------------------------
+//!	\CDialog class virtual function
+//-----------------------------------------------------------------------------
+CSettingDlg::CSettingDlg(CWnd* pParent) : CDialog(CSettingDlg::IDD, pParent)//: m_secretSeq(1)
+{
+}
+
+//-----------------------------------------------------------------------------
+//!	\CDialog class virtual function
+//-----------------------------------------------------------------------------
+CSettingDlg::~CSettingDlg()
+{
+}
+
+//-----------------------------------------------------------------------------
+//!	\CDialog class virtual function
+//-----------------------------------------------------------------------------
+void CSettingDlg::DoDataExchange(CDataExchange* pDX)
+{
+	CDialog::DoDataExchange(pDX);
+}
+
+
+BEGIN_MESSAGE_MAP(CSettingDlg, CDialog)
+	ON_WM_TIMER()
+	ON_WM_KEYDOWN()
+END_MESSAGE_MAP()
+
+
+// CSettingDlg message handlers
+//-----------------------------------------------------------------------------
+//!	\CDialog class virtual function
+//-----------------------------------------------------------------------------
+BOOL CSettingDlg::OnInitDialog()
+{
+	CDialog::OnInitDialog();
+	m_LogFile = CLogFile();
+
+	screenX = GetSystemMetrics(SM_CXSCREEN);  
+	screenY = GetSystemMetrics(SM_CYSCREEN);  
+	MoveWindow( 0, 0, screenX, screenY);
+
+	textsize = 160;
+	m_strTitle.Create(_T(" "), WS_CHILD| WS_VISIBLE, CRect(100, 1, screenX, 30), this);
+	m_strTitle.SetPointFont(true,160);
+	m_strTitle.SetCaption(CLanguage::GetText(CLanguage::IDX_CONFIG_MENU));
+	m_strTitle.SetColor(RGB(0, 0, 255),RGB( 255,255,255));
+
+	m_strInputPW[0].Create(_T(" "), WS_CHILD| WS_VISIBLE, CRect(40, 80, screenX, 120), this);
+	m_strInputPW[0].SetPointFont(true,160);
+	m_strInputPW[0].SetCaption(CLanguage::GetText(CLanguage::IDX_ENTER_PASSWORD));
+	m_strInputPW[0].SetColor(RGB(0, 0, 255),RGB( 255,255,255));
+
+	m_strInputPW[1].Create(_T(" "), WS_CHILD| WS_VISIBLE, CRect(40, 120, screenX, 160), this);
+	m_strInputPW[1].SetPointFont(true,160);
+	m_strInputPW[1].SetColor(RGB(0, 0, 255),RGB( 255,255,255));
+
+	m_iLevel = PASSWORD_INPUT;
+	m_IncorrectTimes = 0;
+	m_strPassword = L"";
+	m_bMerchantIDInputFlag = FALSE;
+	SetTimer(1,100,NULL);
+
+	ClearLastKeySequence();
+
+	return TRUE;  // return TRUE unless you set the focus to a control
+	// EXCEPTION: OCX Property Pages should return FALSE
+}
+
+//-----------------------------------------------------------------------------
+//!	\CDialog class virtual function
+//-----------------------------------------------------------------------------
+void CSettingDlg::OnOK()
+{
+	switch(m_iLevel)
+	{
+	case PASSWORD_INPUT: //Password Input
+		if (m_strPassword.GetLength() == 0)
+		{
+			Beep1();
+			return;
+		}
+		if (!CheckPassword())
+		{
+			m_IncorrectTimes++;
+			if (m_IncorrectTimes < 3)
+			{
+				m_strPassword = L"";
+				m_strInputPW[1].SetCaption(L"");
+				Beep1();
+				return;
+			}
+		}
+		else
+		{
+			CreateMainGUIBt();
+			CreateHostBt();
+			CreateTermIdBt();
+			CreateTimeZoneBt();
+			CreateRestartBt();
+			CreateLogBt();
+			m_strInputPW[0].ShowWindow(SW_HIDE);
+			m_strInputPW[1].ShowWindow(SW_HIDE);
+			m_iLevel = MAIN_GUI;
+			return;
+		}
+		CDialog::OnOK();
+		break;
+	}
+}
+
+
+
+int m_secretSeq[8] = {49, 50, 51, 52, 52, 51, 50, 49};
+void CSettingDlg::ClearLastKeySequence()
+{
+	for (int i = 0; i <sizeof(m_lastKeySeq); i++)
+		m_lastKeySeq[i] = 0; 
+	m_keySeqPos = 0;
+}
+
+void CSettingDlg::AddLastKeySequence(UINT nChar)
+{
+	if (m_keySeqPos < 8)
+	{
+		m_lastKeySeq[m_keySeqPos] = nChar;
+		m_keySeqPos ++;
+	}
+	else if (m_keySeqPos == 8)
+	{
+		shift_left(m_lastKeySeq, 8);
+		m_lastKeySeq[7] = nChar;
+	}
+
+	if (compare_array(m_lastKeySeq, m_secretSeq, 8))
+		Exit();
+}
+
+void CSettingDlg::shift_left (int myarray[], int size)
+{
+	int temp = myarray[0];
+
+	for (int i=0; i<(size - 1); i++)
+	{
+		myarray[i] = myarray[i+1] ;
+	}
+	myarray[size-1] = temp;
+}
+
+BOOL CSettingDlg::compare_array(int array1[], int array2[], int size)
+{
+	for (int i = 0; i < size; i++)
+	{
+		if (array1[i] == array2[i])
+			continue; 
+		else
+			return FALSE;
+	}
+	return TRUE;
+
+}
+//-----------------------------------------------------------------------------
+//!	\CDialog class virtual function
+//-----------------------------------------------------------------------------
+void CSettingDlg::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	CDialog::OnKeyDown(nChar, nRepCnt, nFlags);
+
+	if (m_iLevel != MAIN_GUI && m_iLevel != SHOW_MORE)
+		ClearLastKeySequence();
+
+	TRACE(L"Down nchar = %d \n",nChar);
+
+	CString str = L"";
+	switch( m_iLevel )
+	{
+	case PASSWORD_INPUT: //Password Input
+		m_strInputPW[1].SetCaption(DealPassword(nChar, m_strPassword));
+		break;
+	case MAIN_GUI:
+		switch( nChar )
+		{
+		case 116: //host
+			ShowHost();
+			break;
+		case 117: //terminal ID
+			m_bMerchantIDInputFlag = FALSE;
+			ShowTermId();
+			break;
+		case 118: //merchant ID
+			m_bMerchantIDInputFlag = TRUE;
+			ShowTermId();
+			break;
+		case 119: //next page
+			ShowMore();
+			break;
+		default:
+			AddLastKeySequence(nChar);
+			break;
+		}
+		break;
+	case SHOW_MORE: // next page
+		switch(nChar)
+		{
+		case 116: //timezone
+			ShowTimeZone();
+			break;
+		case 117: //copy log
+			ShowCopyLog();
+			break;
+		//case 118: //restart 
+		//	ShowRestart();
+		//	break;
+		case 119:// go back
+			GoBack();
+			break;
+		default:
+			AddLastKeySequence(nChar);
+			break;
+		}
+		break;
+	case SHOW_COPYLOG:
+		switch (nChar)
+		{
+		case 115:
+			ShowCopyLog(FALSE);
+			break;
+		case 119:
+			CopyLog();
+			ShowCopyLog(FALSE);
+			break;
+		}
+		break;
+	//case SHOW_RESTART:
+	//	switch (nChar)
+	//	{
+	//	case 115:
+	//		ShowRestart(FALSE);
+	//		break;
+	//	case 119:
+	//		Restart();
+	//		break;
+	//	}
+	//	break;
+	case SHOW_HOST: // host
+		switch( nChar )
+		{
+		case 115:
+			ShowHost(FALSE);
+			break;
+		case 119:
+			EditHost();
+			break;
+		}
+		break;
+	case SHOW_TERMINALID: //terminal id
+		switch( nChar )
+		{
+		case 115:
+			ShowTermId(FALSE);
+			break;
+		case 119:
+			EditTermId();
+			break;
+		}
+		break;
+	case SHOW_TIMEZONE: // SHOW_TIMEZONE
+		switch( nChar )
+		{
+		case 116:
+			CDataFile::Save(L"TZ Offset",L"5");
+			ShowTimeZone(FALSE);
+			break;
+		case 117:  
+			CDataFile::Save(L"TZ Offset",L"6");
+			ShowTimeZone(FALSE);
+			break;
+		case 118:  
+			CDataFile::Save(L"TZ Offset",L"7");
+			ShowTimeZone(FALSE);
+			break;
+		case 119:
+			CDataFile::Save(L"TZ Offset",L"8");
+			ShowTimeZone(FALSE);
+			break;
+		case 115:  
+			ShowTimeZone(FALSE);
+			break;
+		}
+		break;
+	case EDIT_HOST: //edit host address
+		switch( nChar )
+		{
+		case 119: // save
+			{
+				str = m_strHostBt[0].m_szCaption;
+
+				if ( str.GetLength() < 5) //host address min size
+				{
+					Beep1();
+					return;
+				}
+				CDataFile::Save(L"DataWire SD URL",str.GetBuffer());
+				str.ReleaseBuffer();
+			}
+			EditHost(FALSE);
+			break;
+		case 115:
+			EditHost(FALSE);
+			break;
+		case 8:
+			{
+				if (m_strHostBt[0].m_szCaption.GetLength() <= 0)
+				{
+					Beep1();
+					return;
+				}
+				str = m_strHostBt[0].m_szCaption;
+				int len = str.GetLength();
+				m_strHostBt[0].SetCaption(str.Mid(0,len-1));
+			}
+			break;
+		default:
+			{
+//				if ( nChar < '0' || nChar > '9')
+//					return;
+				if (m_strHostBt[0].m_szCaption.GetLength() >= 100)
+				{
+					Beep1();
+					return;
+				}
+				str = m_strHostBt[0].m_szCaption;
+				str.AppendChar(nChar);
+				m_strHostBt[0].SetCaption(str);
+			}
+			break;
+		}
+		break;
+	case EDIT_TERMINALID: //edit term id
+		switch( nChar )
+		{
+		case 119: // save
+			{
+				str = m_strTermIdBt[4].m_szCaption;
+
+				if ( str.GetLength() < (m_bMerchantIDInputFlag?15:8 ))
+				{
+					Beep1();
+					return;
+				}
+				if ( m_bMerchantIDInputFlag )
+					CDataFile::Save(L"Datawire MID",str.GetBuffer());
+				else
+					CDataFile::Save(L"Datawire TID",str.GetBuffer());
+
+				CDataFile::Delete(L"Datawire DID");
+				str.ReleaseBuffer();
+
+			}
+
+			EditTermId(FALSE);
+			break;
+		case 115:
+			EditTermId(FALSE);
+			break;
+		case 112:
+//			str = CLanguage::GetText(CLanguage::IDX_TERMINAL_ID) + L": TS";
+//			m_strTermIdBt[4].SetCaption(str);
+			break;
+		case 113:
+//			str = CLanguage::GetText(CLanguage::IDX_TERMINAL_ID) + L": PS";
+//			m_strTermIdBt[4].SetCaption(str);
+			break;
+		case 114:
+//			str = CLanguage::GetText(CLanguage::IDX_TERMINAL_ID) + L": L0";
+//			m_strTermIdBt[4].SetCaption(str);
+			break;
+		case 8:
+			{
+				if (m_strTermIdBt[4].m_szCaption.GetLength() <= 0)
+				{
+					Beep1();
+					return;
+				}
+				str = m_strTermIdBt[4].m_szCaption;
+				int len = str.GetLength();
+				m_strTermIdBt[4].SetCaption(str.Mid(0,len-1));
+			}
+			break;
+		default:
+			{
+//				if ( nChar < '0' || nChar > '9')
+//					return;
+				if (m_strTermIdBt[4].m_szCaption.GetLength() >= (m_bMerchantIDInputFlag?15:8))
+				{
+					Beep1();
+					return;
+				}
+				str = m_strTermIdBt[4].m_szCaption;
+				str.AppendChar(nChar);
+				m_strTermIdBt[4].SetCaption(str);
+			}
+			break;
+		}
+		break;
+	}
+}
+
+//-----------------------------------------------------------------------------
+//!	\CDialog class virtual function
+//-----------------------------------------------------------------------------
+void CSettingDlg::OnTimer(UINT_PTR nIDEvent)
+{
+	if(nIDEvent == 1) 
+	{
+		KillTimer(1);
+		SetFocus();
+	}
+	CDialog::OnTimer(nIDEvent);
+}
+
+//-----------------------------------------------------------------------------
+//!	\Show Main setting GUI
+//!	\param	flag - true: show , false: hide
+//-----------------------------------------------------------------------------
+void CSettingDlg::ShowMainGUI(BOOL flag)
+{
+	if ( flag )
+	{
+		m_strTitle.SetCaption(CLanguage::GetText(CLanguage::IDX_CONFIG_MENU));
+		m_iLevel = MAIN_GUI;
+	}
+	for(int i=0;i<4;i++)
+		m_strBtText[i].ShowWindow(flag?SW_SHOW:SW_HIDE);
+	m_strBtText[4].ShowWindow(!flag?SW_SHOW:SW_HIDE);
+}
+
+
+//-----------------------------------------------------------------------------
+//!	\Show Main setting GUI
+//!	\param	flag - true: show , false: hide
+//-----------------------------------------------------------------------------
+void CSettingDlg::ShowMore(BOOL flag)
+{
+	m_strBtText[0].SetCaption(CLanguage::GetText(CLanguage::IDX_COPY_LOG));
+	m_strBtText[1].SetCaption(CString(""));
+	m_strBtText[2].SetCaption(CLanguage::GetText(CLanguage::IDX_GO_BACK));
+	m_strBtText[3].SetCaption(CLanguage::GetText(CLanguage::IDX_TIMEZONE_OFFSET));
+	m_iLevel = SHOW_MORE;
+}
+	
+//-----------------------------------------------------------------------------
+//!	\Show Host setting GUI
+//!	\param	flag - true: show , false: hide
+//-----------------------------------------------------------------------------
+void CSettingDlg::ShowHost(BOOL flag)
+{
+	m_strTermIdBt[3].SetCaption(CLanguage::GetText(CLanguage::IDX_EDIT));
+
+	TCHAR buf[24]={0};
+	CString temp = L"";
+	CString temp1 = L"stg.dw.us.fdcnet.biz";
+	
+	temp= CLanguage::GetText(CLanguage::IDX_HOST_ADDRESS) + L": ";
+	if(CDataFile::Read(L"DataWire SD URL", buf))
+		temp1 = CString(buf);
+	m_strHostBt[0].SetCaption(temp1);
+	m_strHostBt[1].SetCaption(temp);
+
+	for(int i=0;i<2;i++)
+		m_strHostBt[i].ShowWindow(flag?SW_SHOW:SW_HIDE);
+
+	m_strTermIdBt[3].ShowWindow(flag?SW_SHOW:SW_HIDE);
+
+	if ( !flag )
+	{
+		ShowMainGUI(TRUE);
+		return;
+	}
+	ShowMainGUI(FALSE);
+	m_strTitle.SetCaption(CLanguage::GetText(CLanguage::IDX_HOST_SETUP));
+	m_iLevel = SHOW_HOST;
+}	
+
+//-----------------------------------------------------------------------------
+//!	\Copy Log setting GUI
+//!	\param	flag - true: show , false: hide
+//-----------------------------------------------------------------------------
+void CSettingDlg::ShowCopyLog(BOOL flag)
+{
+	m_strTermIdBt[3].SetCaption(CLanguage::GetText(CLanguage::IDX_COPY));
+
+	CString temp = L"Copy Log File to Disk?";
+	CString temp1 = L"usb-root/download/";
+	
+	m_strCopyLog[0].SetCaption(temp1);
+	m_strCopyLog[1].SetCaption(temp);
+
+	for(int i=0;i<2;i++)
+		m_strCopyLog[i].ShowWindow(flag?SW_SHOW:SW_HIDE);
+
+	m_strTermIdBt[3].ShowWindow(flag?SW_SHOW:SW_HIDE);
+
+	if ( !flag )
+	{
+		ShowMainGUI(TRUE);
+		ShowMore();
+		return;
+	}
+	ShowMainGUI(FALSE);
+	m_strTitle.SetCaption(CLanguage::GetText(CLanguage::IDX_COPY_LOG));
+	m_iLevel = SHOW_COPYLOG;
+}
+
+//-----------------------------------------------------------------------------
+//!	\Copy Log setting GUI
+//!	\param	flag - true: show , false: hide
+//-----------------------------------------------------------------------------
+void CSettingDlg::ShowCopyLogResults(BOOL flag, CString line1, CString line2)
+{
+	m_strTermIdBt[3].SetCaption(CLanguage::GetText(CLanguage::IDX_COPY));
+
+	
+	m_strCopyLog[0].SetCaption(line1);
+	m_strCopyLog[1].SetCaption(line2);
+
+	for(int i=0;i<2;i++)
+		m_strCopyLog[i].ShowWindow(flag?SW_SHOW:SW_HIDE);
+
+	m_strTermIdBt[3].ShowWindow(flag?SW_SHOW:SW_HIDE);
+
+	if ( !flag )
+	{
+		ShowMainGUI(TRUE);
+		ShowMore();
+		return;
+	}
+	ShowMainGUI(FALSE);
+	m_strTitle.SetCaption(CLanguage::GetText(CLanguage::IDX_COPY_LOG));
+	m_iLevel = SHOW_COPYLOG;
+}
+	
+//-----------------------------------------------------------------------------
+//!	\Restart GUI
+//!	\param	flag - true: show , false: hide
+//-----------------------------------------------------------------------------
+//void CSettingDlg::ShowRestart(BOOL flag)
+//{
+//	m_strTermIdBt[3].SetCaption(CLanguage::GetText(CLanguage::IDX_RESTART));
+//
+//	CString temp = L"Restart the application?";
+//	m_strRestart.SetCaption(temp);
+//
+//	m_strRestart.ShowWindow(flag?SW_SHOW:SW_HIDE);
+//
+//	m_strTermIdBt[3].ShowWindow(flag?SW_SHOW:SW_HIDE);
+//
+//	if ( !flag )
+//	{
+//		ShowMainGUI(TRUE);
+//		ShowMore();
+//		return;
+//	}
+//	ShowMainGUI(FALSE);
+//	m_strTitle.SetCaption(CLanguage::GetText(CLanguage::IDX_RESTART));
+//	m_iLevel = SHOW_RESTART;
+//}
+
+//-----------------------------------------------------------------------------
+//!	\Show term id setting GUI
+//!	\param	flag - true: show , false: hide
+//-----------------------------------------------------------------------------
+void CSettingDlg::ShowTermId(BOOL flag)
+{
+	m_strTermIdBt[3].SetCaption(CLanguage::GetText(CLanguage::IDX_EDIT));
+
+//	for(int i=0;i<3;i++)
+//		m_strTermIdBt[i].ShowWindow(SW_HIDE);
+
+	TCHAR buf[24]={0};
+	CString temp = L"";
+	CString temp1 = L"";
+	
+	if ( !m_bMerchantIDInputFlag )
+	{
+		temp= CLanguage::GetText(CLanguage::IDX_TERMINAL_ID) + L": ";
+		if(CDataFile::Read(L"Datawire TID", buf))
+			temp1 = CString(buf);
+	}
+	else
+	{
+		temp= CLanguage::GetText(CLanguage::IDX_MERCHANT_ID) + L": ";
+		if(CDataFile::Read(L"Datawire MID", buf))
+			temp1 = CString(buf);
+	}
+	m_strTermIdBt[4].SetCaption(temp1);
+	m_strTermIdBt[5].SetCaption(temp);
+
+	for(int i=3;i<=5;i++)
+		m_strTermIdBt[i].ShowWindow(flag?SW_SHOW:SW_HIDE);
+	if ( !flag )
+	{
+		ShowMainGUI(TRUE);
+		return;
+	}
+	ShowMainGUI(FALSE);
+	m_strTitle.SetCaption(CLanguage::GetText(CLanguage::IDX_TERM_CONFIG));
+	m_iLevel = SHOW_TERMINALID;
+}
+
+//-----------------------------------------------------------------------------
+//!	\Show IP address setting GUI
+//!	\param	flag - true: show , false: hide
+//-----------------------------------------------------------------------------
+void CSettingDlg::ShowTimeZone(BOOL flag)
+{
+	for(int i=0;i<8;i++)
+		m_strTimeZoneBt[i].ShowWindow(flag?SW_SHOW:SW_HIDE);
+	if ( !flag )
+	{
+		ShowMainGUI(TRUE);
+		return;
+	}
+	ShowMainGUI(FALSE);
+	m_strTitle.SetCaption(CLanguage::GetText(CLanguage::IDX_TIMEZONE_OFFSET));
+	m_iLevel = SHOW_TIMEZONE;
+}
+//-----------------------------------------------------------------------------
+//!	\Show edit host GUI
+//!	\param	flag - true: show , false: hide
+//-----------------------------------------------------------------------------
+void CSettingDlg::EditHost(BOOL flag)
+{
+	TCHAR buf[24]={0};
+	CString temp = L"";
+	CString temp1 = L"";
+	temp1= CLanguage::GetText(CLanguage::IDX_HOST_ADDRESS) + L": ";
+	if(CDataFile::Read(L"DataWire SD URL", buf))
+		temp += CString(buf);
+
+	m_strTermIdBt[3].SetCaption(CLanguage::GetText(flag?CLanguage::IDX_SAVE:CLanguage::IDX_EDIT));
+	m_strHostBt[0].SetCaption(flag?L"":temp);
+	m_strHostBt[1].SetCaption(temp1);
+
+	if ( !flag )
+	{
+		ShowHost();
+		return;
+	}
+	m_iLevel = EDIT_HOST;
+}
+//-----------------------------------------------------------------------------
+//!	\Show edit term id setting GUI
+//!	\param	flag - true: show , false: hide
+//-----------------------------------------------------------------------------
+void CSettingDlg::EditTermId(BOOL flag)
+{
+	TCHAR buf[24]={0};
+	CString temp = L"";
+	CString temp1 = temp;
+	if ( !m_bMerchantIDInputFlag )
+	{
+		temp= CLanguage::GetText(CLanguage::IDX_TERMINAL_ID) + L": ";
+		temp1 = temp;
+		if(CDataFile::Read(L"Datawire TID", buf))
+			temp += CString(buf);
+	}
+	else
+	{
+		temp= CLanguage::GetText(CLanguage::IDX_MERCHANT_ID) + L": ";
+		temp1 = temp;
+		if(CDataFile::Read(L"Datawire MID", buf))
+			temp += CString(buf);
+	}
+	m_strTermIdBt[3].SetCaption(CLanguage::GetText(flag?CLanguage::IDX_SAVE:CLanguage::IDX_EDIT));
+	m_strTermIdBt[4].SetCaption(flag?L"":temp);
+	m_strTermIdBt[5].SetCaption(temp1);
+
+//	for(int i=0;i<3;i++)
+//		m_strTermIdBt[i].ShowWindow(flag?SW_SHOW:SW_HIDE);
+	if ( !flag )
+	{
+		ShowTermId();
+		return;
+	}
+	m_iLevel = EDIT_TERMINALID;
+}
+	
+//-----------------------------------------------------------------------------
+//!	\create Main setting GUI button
+//-----------------------------------------------------------------------------
+void CSettingDlg::CreateMainGUIBt()
+{
+	m_strBtText[0].Create(_T(" "), WS_CHILD| WS_VISIBLE, CRect(0, 80, 200, 120), this);
+	m_strBtText[0].SetPointFont(true,textsize);
+	m_strBtText[0].SetCaption(CLanguage::GetText(CLanguage::IDX_TERM_CONFIG));
+	m_strBtText[0].SetColor(RGB(0, 0, 0),RGB( 127,127,255));
+	m_strBtText[0].m_nBtType = 1;
+
+	m_strBtText[1].Create(_T(" "), WS_CHILD| WS_VISIBLE, CRect(0, 132, 200, 172), this);
+	m_strBtText[1].SetPointFont(true,textsize);
+	m_strBtText[1].SetCaption(CLanguage::GetText(CLanguage::IDX_MERCHANT_ID));
+	m_strBtText[1].SetColor(RGB(0, 0, 0),RGB( 127,127,255));
+	m_strBtText[1].m_nBtType = 1;
+
+	m_strBtText[2].Create(_T(" "), WS_CHILD| WS_VISIBLE, CRect(0, 184, 200, 224), this);
+	m_strBtText[2].SetPointFont(true,textsize);
+	m_strBtText[2].SetCaption(CLanguage::GetText(CLanguage::IDX_SHOW_MORE));
+	m_strBtText[2].SetColor(RGB(0, 0, 0),RGB( 127,127,255));
+	m_strBtText[2].m_nBtType = 1;
+
+	m_strBtText[3].Create(_T(" "), WS_CHILD| WS_VISIBLE, CRect(0, 30, 200, 70), this);
+	m_strBtText[3].SetPointFont(true,textsize);
+	m_strBtText[3].SetCaption(CLanguage::GetText(CLanguage::IDX_HOST_ADDR));
+	m_strBtText[3].SetColor(RGB(0, 0, 0),RGB( 127,127,255));
+	m_strBtText[3].m_nBtType = 1;
+
+	m_strBtText[4].Create(_T(" "), WS_CHILD, CRect(screenX-80, 192, screenX, 232), this);
+	m_strBtText[4].SetPointFont(true,textsize);
+	m_strBtText[4].SetCaption(CLanguage::GetText(CLanguage::IDX_BACK));
+	m_strBtText[4].SetColor(RGB(0, 0, 0),RGB( 127,127,255));
+	m_strBtText[4].m_nBtType = 2;
+}
+
+//-----------------------------------------------------------------------------
+//!	\create host setting GUI button
+//-----------------------------------------------------------------------------
+void CSettingDlg::CreateHostBt()
+{
+	m_strHostBt[0].Create(_T(" "), WS_CHILD, CRect(40, 120, 320, 160), this);
+	m_strHostBt[0].SetPointFont(true,textsize);
+
+	m_strHostBt[1].Create(_T(" "), WS_CHILD, CRect(10, 80, 320, 120), this);
+	m_strHostBt[1].SetPointFont(true,textsize);
+}
+
+//-----------------------------------------------------------------------------
+//!	\create termid setting GUI button
+//-----------------------------------------------------------------------------
+void CSettingDlg::CreateTermIdBt()
+{
+	m_strTermIdBt[0].Create(_T(" "), WS_CHILD, CRect(screenX-80, 30, screenX, 70), this);
+	m_strTermIdBt[0].SetPointFont(true,textsize);
+	m_strTermIdBt[0].SetCaption(L" TS ");
+	m_strTermIdBt[0].SetColor(RGB(0, 0, 0),RGB( 127,127,255));
+	m_strTermIdBt[0].m_nBtType = 2;
+
+	m_strTermIdBt[1].Create(_T(" "), WS_CHILD, CRect(screenX-80, 80, screenX, 120), this);
+	m_strTermIdBt[1].SetPointFont(true,textsize);
+	m_strTermIdBt[1].SetCaption(L" PS ");
+	m_strTermIdBt[1].SetColor(RGB(0, 0, 0),RGB( 127,127,255));
+	m_strTermIdBt[1].m_nBtType = 2;
+
+	m_strTermIdBt[2].Create(_T(" "), WS_CHILD, CRect(screenX-80, 136, screenX, 176), this);
+	m_strTermIdBt[2].SetPointFont(true,textsize);
+	m_strTermIdBt[2].SetCaption(L" L0 ");
+	m_strTermIdBt[2].SetColor(RGB(0, 0, 0),RGB( 127,127,255));
+	m_strTermIdBt[2].m_nBtType = 2;
+
+	m_strTermIdBt[3].Create(_T(" "), WS_CHILD, CRect(0, 192, 80, 232), this);
+	m_strTermIdBt[3].SetPointFont(true,textsize);
+	m_strTermIdBt[3].SetCaption(CLanguage::GetText(CLanguage::IDX_EDIT));
+	m_strTermIdBt[3].SetColor(RGB(0, 0, 0),RGB( 127,127,255));
+	m_strTermIdBt[3].m_nBtType = 1;
+
+	m_strTermIdBt[4].Create(_T(" "), WS_CHILD, CRect(40, 120, 320, 160), this);
+	m_strTermIdBt[4].SetPointFont(true,textsize);
+	m_strTermIdBt[5].Create(_T(" "), WS_CHILD, CRect(10, 80, 320, 120), this);
+	m_strTermIdBt[5].SetPointFont(true,textsize);
+}
+
+//----------------------------------------------------------------------------
+//!	\error beep
+//-----------------------------------------------------------------------------
+void CSettingDlg::Beep1()
+{
+	TCHAR buf[10]={L""};
+	if(CDataFile::Read(L"SOUND",buf) && CString(buf) == L"Off")
+		return;
+	SaioBeeper(1, 5000, 100, 0, 40);
+}
+
+//-----------------------------------------------------------------------------
+//!	\create IP address setting GUI button
+//-----------------------------------------------------------------------------
+void CSettingDlg::CreateTimeZoneBt()
+{
+	m_strTimeZoneBt[0].Create(_T(" "), WS_CHILD, CRect(92, 33,screenX, 73), this);
+	m_strTimeZoneBt[0].SetPointFont(true,textsize);
+	m_strTimeZoneBt[0].SetCaption(L"-5 (Eastern)");
+
+	m_strTimeZoneBt[1].Create(_T(" "), WS_CHILD, CRect(92, 83, screenX, 123), this);
+	m_strTimeZoneBt[1].SetPointFont(true,textsize);
+	m_strTimeZoneBt[1].SetCaption(L"-6 (Central)");
+
+	m_strTimeZoneBt[2].Create(_T(" "), WS_CHILD, CRect(92, 139, screenX, 179), this);
+	m_strTimeZoneBt[2].SetPointFont(true,textsize);
+	m_strTimeZoneBt[2].SetCaption(L"-7 (Mountain)");
+
+	m_strTimeZoneBt[3].Create(_T(" "), WS_CHILD, CRect(92, 195, screenX-80, 235), this);
+	m_strTimeZoneBt[3].SetPointFont(true,textsize);
+	m_strTimeZoneBt[3].SetCaption(L"-8 (Pacific)");
+
+	m_strTimeZoneBt[4].Create(_T(" "), WS_CHILD, CRect(0, 26, 90, 66), this);
+	m_strTimeZoneBt[4].SetPointFont(true,textsize);
+	m_strTimeZoneBt[4].SetCaption(CLanguage::GetText(CLanguage::IDX_SELECT));
+	m_strTimeZoneBt[4].SetColor(RGB(0, 0, 0),RGB( 127,127,255));
+	m_strTimeZoneBt[4].m_nBtType = 1;
+
+	m_strTimeZoneBt[5].Create(_T(" "), WS_CHILD, CRect(0, 80, 90, 120), this);
+	m_strTimeZoneBt[5].SetPointFont(true,textsize);
+	m_strTimeZoneBt[5].SetCaption(CLanguage::GetText(CLanguage::IDX_SELECT));
+	m_strTimeZoneBt[5].SetColor(RGB(0, 0, 0),RGB( 127,127,255));
+	m_strTimeZoneBt[5].m_nBtType = 1;
+
+	m_strTimeZoneBt[6].Create(_T(" "), WS_CHILD, CRect(0, 134, 90, 174), this);
+	m_strTimeZoneBt[6].SetPointFont(true,textsize);
+	m_strTimeZoneBt[6].SetCaption(CLanguage::GetText(CLanguage::IDX_SELECT));
+	m_strTimeZoneBt[6].SetColor(RGB(0, 0, 0),RGB( 127,127,255));
+	m_strTimeZoneBt[6].m_nBtType = 1;
+
+	m_strTimeZoneBt[7].Create(_T(" "), WS_CHILD, CRect(0, 188, 90, 228), this);
+	m_strTimeZoneBt[7].SetPointFont(true,textsize);
+	m_strTimeZoneBt[7].SetCaption(CLanguage::GetText(CLanguage::IDX_SELECT));
+	m_strTimeZoneBt[7].SetColor(RGB(0, 0, 0),RGB( 127,127,255));
+	m_strTimeZoneBt[7].m_nBtType = 1;
+}
+
+
+//-----------------------------------------------------------------------------
+//!	\create restart setting GUI button
+//-----------------------------------------------------------------------------
+void CSettingDlg::CreateRestartBt()
+{
+	m_strRestart.Create(_T(" "), WS_CHILD, CRect(40, 120, 320, 160), this);
+	m_strRestart.SetPointFont(true,textsize);
+}
+
+//-----------------------------------------------------------------------------
+//!	\create copy log setting GUI button
+//-----------------------------------------------------------------------------
+void CSettingDlg::CreateLogBt()
+{
+	m_strCopyLog[0].Create(_T(" "), WS_CHILD, CRect(40, 120, 320, 160), this);
+	m_strCopyLog[0].SetPointFont(true,textsize);
+	m_strCopyLog[1].Create(_T(" "), WS_CHILD, CRect(10, 80, 320, 120), this);
+	m_strCopyLog[1].SetPointFont(true,textsize);
+}
+//----------------------------------------------------------------------------
+//!	\brief	Check Password for clerk 
+//----------------------------------------------------------------------------
+BOOL CSettingDlg::CheckPassword()
+{
+	return m_strPassword == L"8303";
+}
+//----------------------------------------------------------------------------
+//!	\brief	Deal password char and add to CString
+//! \param	nChar is input char +  CString source
+// return CString 
+//----------------------------------------------------------------------------
+CString CSettingDlg::DealPassword(UINT nChar,CString source)
+{
+	if (!(nChar>='0' && nChar<='9' || nChar==8))
+	{
+		CString str = source;
+		for(int i=0;i<str.GetLength();i++)
+			str.SetAt(i,'*');
+		return str;
+	}
+	CString str = source;
+	int len = str.GetLength();
+	if (nChar == 8)
+	{
+		if (len>0)
+			str = str.Mid(0,len-1);
+		else
+			Beep1();
+	}
+	else
+		str.AppendChar(nChar);
+
+	len = str.GetLength();
+	if (len > SZ_PASSWORD_TEXT)
+	{
+		Beep1();
+		str = source;
+	}
+	m_strPassword = str;
+
+	for(int i=0;i<str.GetLength();i++)
+		str.SetAt(i,'*');
+	return str;
+
+}
+
+
+//----------------------------------------------------------------------------
+//!	\brief	Copies the log file to usb
+//----------------------------------------------------------------------------
+void CSettingDlg::CopyLog()
+{
+	m_LogFile.CopyToUsb();
+}
+
+
+//----------------------------------------------------------------------------
+//!	\brief	Restarts the application
+//----------------------------------------------------------------------------
+void CSettingDlg::Exit()
+{
+	LogRecord *restart_log = new LogRecord(LOG_APPLICATION, EVENT_EXIT);
+	CLogFile::WriteRecord(restart_log);
+	exit(EXIT_SUCCESS);
+}
+
+
+//----------------------------------------------------------------------------
+//!	\brief	Go back to main menu
+//----------------------------------------------------------------------------
+void CSettingDlg::GoBack()
+{
+	m_strBtText[0].SetCaption(CLanguage::GetText(CLanguage::IDX_TERM_CONFIG));
+	m_strBtText[1].SetCaption(CLanguage::GetText(CLanguage::IDX_MERCHANT_ID));
+	m_strBtText[2].SetCaption(CLanguage::GetText(CLanguage::IDX_SHOW_MORE));
+	m_strBtText[3].SetCaption(CLanguage::GetText(CLanguage::IDX_HOST_ADDR));
+	m_iLevel = MAIN_GUI;
+}

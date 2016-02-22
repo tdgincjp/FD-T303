@@ -1,0 +1,331 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Chinese (P.R.C.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+#ifdef _WIN32
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+#pragma code_page(936)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_MSGDLG DIALOG  0, 0, 316, 183
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_SYSMENU
+FONT 8, "MS Shell Dlg"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,205,162,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,259,162,50,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_MSGDLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 309
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 176
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Chinese (P.R.C.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_MAINWND_DIALOG DIALOG  0, 0, 162, 129
+STYLE DS_SETFONT | WS_POPUP | WS_VISIBLE | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW | 0x80000000L
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Button1",IDC_BUTTON1,"Button",BS_OWNERDRAW | NOT WS_VISIBLE | WS_TABSTOP,75,18,50,14
+    CONTROL         "Button1",IDC_BUTTON2,"Button",BS_OWNERDRAW | NOT WS_VISIBLE | WS_TABSTOP,65,34,50,14
+    CONTROL         145,IDC_STATIC_LOGOS,"Static",SS_BITMAP | NOT WS_VISIBLE,7,3,37,25
+    LISTBOX         IDC_LIST1,35,82,48,40,LBS_NOINTEGRALHEIGHT | NOT WS_VISIBLE | NOT WS_BORDER | WS_TABSTOP
+    CONTROL         141,IDC_CONNECT,"Static",SS_BITMAP | NOT WS_VISIBLE,134,3,21,20
+    CONTROL         142,IDC_DISCONNECT,"Static",SS_BITMAP | NOT WS_VISIBLE,134,3,21,20
+    CONTROL         144,IDC_STATIC_LOGO,"Static",SS_BITMAP,48,24,107,66
+END
+
+IDD_BASEDLG DIALOG  0, 0, 146, 175
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_SYSMENU
+FONT 8, "MS Shell Dlg"
+BEGIN
+    CONTROL         "OK",IDOK,"Button",BS_OWNERDRAW | WS_TABSTOP,7,154,50,14
+    CONTROL         "Cancel",IDCANCEL,"Button",BS_OWNERDRAW | WS_TABSTOP,72,154,50,14
+    CONTROL         "Button1",IDC_BUTTON1,"Button",BS_OWNERDRAW | NOT WS_VISIBLE,7,135,50,14
+    CONTROL         "Button1",IDC_BUTTON2,"Button",BS_OWNERDRAW | NOT WS_VISIBLE,63,136,50,14
+    CONTROL         147,IDC_STATIC,"Static",SS_BITMAP,7,3,43,25
+    CONTROL         "Button1",IDC_BUTTON3,"Button",BS_OWNERDRAW | NOT WS_VISIBLE,73,145,50,14
+    CONTROL         "Button1",IDC_BUTTON4,"Button",BS_OWNERDRAW | NOT WS_VISIBLE,82,153,50,14
+    CONTROL         141,IDC_CONNECT1,"Static",SS_BITMAP,111,17,21,20
+    CONTROL         142,IDC_DISCONNECT1,"Static",SS_BITMAP,118,34,21,20
+END
+
+IDD_INPUT_KEY DIALOG  0, 0, 154, 149
+STYLE DS_SETFONT | WS_POPUP | WS_SYSMENU
+FONT 18, "Microsoft Sans Serif"
+BEGIN
+    EDITTEXT        IDC_EDIT1,18,31,42,12,ES_PASSWORD
+    DEFPUSHBUTTON   "OK",IDOK,29,128,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,91,128,50,14
+    LTEXT           "Enter PIN and OK",IDC_STATIC1,7,17,74,8
+    CONTROL         145,IDC_STATIC,"Static",SS_BITMAP,7,4,16,11
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_MAINWND_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 155
+        TOPMARGIN, 3
+        BOTTOMMARGIN, 122
+    END
+
+    IDD_BASEDLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 139
+        TOPMARGIN, 3
+        BOTTOMMARGIN, 168
+    END
+
+    IDD_INPUT_KEY, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 147
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 142
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#include ""res\\MainWnd.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""     // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\MainWnd.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,1,0,113
+ PRODUCTVERSION 1,1,0,113
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904e4"
+        BEGIN
+            VALUE "CompanyName", "TDG"
+            VALUE "FileDescription", "TODO: <File description>"
+            VALUE "FileVersion", "1, 1, 0, 113"
+            VALUE "InternalName", "MainWnd.exe"
+            VALUE "LegalCopyright", "TODO: (c) <Company name>.  All rights reserved."
+            VALUE "OriginalFilename", "MainWnd.exe"
+            VALUE "ProductName", "TODO: <Product name>"
+            VALUE "ProductVersion", "1, 1, 0, 113"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+UPU                     BITMAP                  "res\\upu.bmp"
+UPD                     BITMAP                  "res\\upd.bmp"
+DOWNU                   BITMAP                  "res\\downu.bmp"
+DOWND                   BITMAP                  "res\\downd.bmp"
+IDB_OK                  BITMAP                  "res\\OK.bmp"
+IDB_CANCEL              BITMAP                  "res\\Cancel.bmp"
+IDB_CORR                BITMAP                  "res\\Corr.bmp"
+IDB_CONNECT             BITMAP                  "res\\Connect-icon32 .bmp"
+IDB_DISCONNECT          BITMAP                  "res\\Disconnect-icon32.bmp"
+IDB_LOGOS1              BITMAP                  "res\\EverLink_Logos.bmp"
+IDB_LOGO1               BITMAP                  "res\\EverLink_Logo.bmp"
+IDB_BMLOCOMOBI          BITMAP                  "res\\LocoMobi Logo.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDP_SOCKETS_INIT_FAILED "Windows sockets initialization failed."
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (Canada) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENC)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_CAN
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_SETTINGDLG DIALOG  0, 0, 316, 183
+STYLE DS_SETFONT | WS_POPUP | WS_SYSMENU
+FONT 8, "Microsoft Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,205,162,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,259,162,50,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_SETTINGDLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 309
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 176
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (Canada) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#include "res\MainWnd.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"     // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
